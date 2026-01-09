@@ -8,25 +8,25 @@ This project demonstrates how to build **tool-enabled LLM agents** using **LangC
 
 The project is divided into **4 parts**:
 
-1. **Part 1 – Custom Tools**
+1. #### Part 1 – Custom Tools**
    - **Math Tool:** Evaluate arithmetic expressions.
    - **Text Analyzer Tool:** Calculate word count, character count, and sentiment.
    - **Date Utility Tool:** Compute the date after N days from today.
 
-2. **Part 2 – LLM + Tool Integration**
+2. #### Part 2 – LLM + Tool Integration**
    - Integrates Gemini LLM with tools.
    - The LLM automatically selects the correct tool.
    - Example queries:  
      - `"What is (234 * 12) + 98?"`  
      - `"Analyze this paragraph and summarize the sentiment."`
 
-3. **Part 3 – Multi-Tool Sequential Agent**
+3. #### Part 3 – Multi-Tool Sequential Agent**
    - The agent can call multiple tools in sequence.
    - Example query:  
      `"Calculate total cost for 3 items priced at 499 each and delivery date in 7 days."`
    - Logs intermediate steps and combines results.
 
-4. **Part 4 – External API Tool**
+4. #### Part 4 – External API Tool**
    - **Weather Tool:** Fetches live weather using OpenWeatherMap API.
    - Provides human-friendly clothing recommendations.
    - Example query:  
@@ -35,28 +35,28 @@ The project is divided into **4 parts**:
 ---
 ## ⚙️ Setup Instructions
 
-### 1. Clone the repository
+#### 1. Clone the repository
 
-      git clone <your-repository-url>
+      git clone https://github.com/kunaltyagi-crossml/LLM-Prompting-Assignment.git
       cd Langchain_Tools_Integration
 
-### 2. Create and activate a virtual environment (recommended)
+#### 2. Create and activate a virtual environment (recommended)
 
       python3 -m venv myvenv
       source myvenv/bin/activate
       
-### 3. Install dependencies
+#### 3. Install dependencies
 
       pip install -r requirements.txt
       
-### 4. Set up environment variables
+#### 4. Set up environment variables
 Create a file named .env in the root directory of this project and add your API keys:
 
       WEATHER_API_KEY=your_weather_api_key_here
       GEMINI_API_KEY=your_gemini_api_key_here
 
 ## Usage
-### 1. Core Agent
+#### 1. Core Agent
 The Core Agent supports:
 - Mathematical calculations
 - Date computations
@@ -67,13 +67,13 @@ Run the application:
 
       python3 main.py
       
-## Example Queries:
+Example Queries:
 
 - What is (234 * 12) + 98?
 - What will be the date 45 days from today?
 - Analyze this paragraph: I am very happy with the excellent service.
 
-2. Weather Agent
+#### 2. Weather Agent
 The Weather Agent:
 
 - Fetches live weather data
@@ -85,7 +85,7 @@ Example query:
 
 The Weather Agent is invoked automatically via main.py.
 
-### How It Works
+#### How It Works
 
 - Agents receive user input as HumanMessage
 - System behavior is governed by detailed prompts in prompts.py
@@ -93,7 +93,7 @@ The Weather Agent is invoked automatically via main.py.
 - Tool outputs are treated as authoritative
 - Final responses are human-friendly and actionable
 
-### Learning Outcomes
+#### Learning Outcomes
 
 - Understand multi-agent architecture using LangChain
 - Learn structured tool-based reasoning
@@ -102,7 +102,7 @@ The Weather Agent is invoked automatically via main.py.
 - Handle Pydantic validation and message schemas
 - Build production-ready LLM agent workflows
 
-### Future Enhancements 
+#### Future Enhancements 
 
 - Persistent memory integration
 - Additional external APIs (currency, news)
