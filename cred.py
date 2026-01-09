@@ -1,3 +1,14 @@
+"""
+cred.py
+--------
+This file is responsible for loading and validating
+all sensitive credentials (API keys).
+
+Best Practice:
+- Credentials are NOT hardcoded
+- Values are loaded from environment variables
+"""
+
 import os
 from dotenv import load_dotenv
 
