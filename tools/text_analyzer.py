@@ -1,46 +1,52 @@
-"""
-text_analyzer_tool.py
+# text_analyzer_tool.py
+# ---------------------
+# Text analysis tool for LangChain agents.
+#
+# This module defines:
+#   - text_analyzer: Computes word count, character count, and basic sentiment.
+#
+# Purpose:
+#   Provides structured analysis of text input and returns human-friendly results,
+#   handling errors gracefully.
 
-Provides word count, character count, and basic sentiment.
-"""
 from langchain.tools import tool
+from logger_config import setup_logger
 
+# -----------------------
+# Logger setup
+# -----------------------
+logger = setup_logger(__name__)
+
+# -----------------------
+# Text analyzer tool
+# -----------------------
 @tool
 def text_analyzer(text: str) -> dict:
     """
-    Summary:
-        Analyzes the given text to compute basic statistics and determine
-        overall sentiment using simple keyword-based rules.
+    Analyzes the given text to compute basic statistics and sentiment.
 
     Args:
-        text (str):
-            The input text to be analyzed.
+        text (str): Input text to analyze.
 
     Returns:
         dict:
-            A dictionary containing:
-            - word_count (int): Total number of words in the text
-            - character_count (int): Total number of characters in the text
-            - sentiment (str): Overall sentiment classification
-              ("Positive", "Negative", or "Neutral")
-
-        In case of failure, the dictionary contains:
-            - error (str): Description of the encountered error
-
-    Raises:
-        Exception:
-            Raised when an unexpected error occurs during text processing.
+            - word_count (int): Number of words in the text
+            - character_count (int): Number of characters in the text
+            - sentiment (str): "Positive", "Negative", or "Neutral"
+        On error:
+            - {"error": "<description>"}
     """
+    logger.info(f"[TOOL CALL] text_analyzer invoked with text length: {len(text)}")
     try:
         word_count = len(text.split())
         char_count = len(text)
 
-        positive = ["good", "great", "happy", "excellent"]
-        negative = ["bad", "sad", "poor", "terrible"]
+        positive_keywords = ["good", "great", "happy", "excellent"]
+        negative_keywords = ["bad", "sad", "poor", "terrible"]
 
         text_lower = text.lower()
-        pos = sum(word in text_lower for word in positive)
-        neg = sum(word in text_lower for word in negative)
+        pos = sum(word in text_lower for word in positive_keywords)
+        neg = sum(word in text_lower for word in negative_keywords)
 
         sentiment = "Neutral"
         if pos > neg:
@@ -48,10 +54,15 @@ def text_analyzer(text: str) -> dict:
         elif neg > pos:
             sentiment = "Negative"
 
-        return {
+        result = {
             "word_count": word_count,
             "character_count": char_count,
             "sentiment": sentiment
         }
+
+        logger.info(f"[TOOL SUCCESS] Text analysis complete: {result}")
+        return result
+
     except Exception as e:
+        logger.error(f"[TOOL ERROR] Text analysis failed: {str(e)}", exc_info=True)
         return {"error": str(e)}

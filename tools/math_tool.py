@@ -1,36 +1,79 @@
-"""
-math_tool.py
+# math_tool.py
+# -------------
+# Safe arithmetic calculation tool for LangChain agents.
+#
+# This module defines:
+#   - math_calculator: Safely evaluates arithmetic expressions using AST parsing.
+#
+# Purpose:
+#   Ensures that math expressions are evaluated securely, errors are handled gracefully,
+#   and results are returned in a human-friendly string format.
 
-Safely evaluates arithmetic expressions.
-"""
-from langchain.tools import tool
+import ast
+import operator as op
+from langchain_core.tools import tool
+from logger_config import setup_logger
 
-@tool
-def math_tool(expression: str) -> str:
+# -----------------------
+# Logger setup
+# -----------------------
+logger = setup_logger(__name__)
+
+# -----------------------
+# Supported operators
+# -----------------------
+OPERATORS = {
+    ast.Add: op.add,
+    ast.Sub: op.sub,
+    ast.Mult: op.mul,
+    ast.Div: op.truediv,
+    ast.Pow: op.pow,
+}
+
+# -----------------------
+# Internal AST evaluator
+# -----------------------
+def _eval_expr(node):
     """
-    Summary:
-        Evaluates a user-provided arithmetic expression and returns
-        the computed result as a formatted string.
+    Recursively evaluates a restricted AST node representing an arithmetic expression.
 
     Args:
-        expression (str):
-            A valid arithmetic expression represented as a string.
-            Example: "234 * 12 + 98"
+        node: AST node (ast.Constant, ast.BinOp).
 
     Returns:
-        str:
-            A formatted string containing the evaluated result.
-            Example: "Result: 2906"
-
-        In case of failure:
-            A formatted error message describing the issue.
-
-    Raises:
-        Exception:
-            Raised when the expression is invalid or cannot be evaluated.
+        Numeric result of the expression.
     """
+    logger.debug(f"Evaluating AST node: {type(node).__name__}")
+    if isinstance(node, ast.Constant):
+        return node.n
+    if isinstance(node, ast.BinOp):
+        return OPERATORS[type(node.op)](
+            _eval_expr(node.left),
+            _eval_expr(node.right)
+        )
+    logger.error(f"Invalid expression node type: {type(node).__name__}")
+    raise ValueError("Invalid expression node")
+
+# -----------------------
+# Math calculator tool
+# -----------------------
+@tool
+def math_calculator(expression: str) -> str:
+    """
+    Safely evaluates a basic arithmetic expression.
+
+    Args:
+        expression (str): Arithmetic expression (e.g., "(234 * 12) + 98").
+
+    Returns:
+        str: Formatted result "Result: <value>" or error message.
+    """
+    logger.info(f"[TOOL CALL] math_calculator invoked with expression: {expression}")
     try:
-        result = eval(expression)
+        tree = ast.parse(expression, mode="eval")
+        result = _eval_expr(tree.body)
+        logger.info(f"[TOOL SUCCESS] Math calculation result: {result}")
         return f"Result: {result}"
     except Exception as e:
-        return f"Math Error: {e}"
+        logger.error(f"[TOOL ERROR] Math calculation failed: {str(e)}", exc_info=True)
+        return f"Error evaluating expression: {str(e)}"

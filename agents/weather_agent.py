@@ -1,54 +1,100 @@
 # weather_agent.py
+# ----------------
+# Weather Agent with Mem0 memory integration
+#
+# This module provides:
+#   - Weather agent for real-time city weather and clothing recommendations
+#   - Memory-enhanced invocation using Mem0
+#   - Persistent conversation storage
 
-"""
-Weather Agent Module
-
-This module initializes and returns a specialized Weather Agent.
-The Weather Agent:
-- Fetches real-time weather data for a given location
-- Provides actionable clothing recommendations
-- Uses the weather_tool integrated with a Gemini LLM model
-"""
-
-from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import Dict
 from langchain.agents import create_agent
-from tools.weather_tool import weather_tool
-from prompts import WEATHER_AGENT_USER_PROMPT
-from config import TEMPERATURE, GEMINI_MODEL
+from langchain_core.messages import SystemMessage
+from client import model, mem0
+from prompts import system_prompt, WEATHER_AGENT_USER_PROMPT
+from tools import get_weather
+from logger_config import setup_logger
 
-def get_weather_agent():
-    """
-    Summary:
-        Initializes and returns a LangChain agent specialized for
-        weather queries, capable of fetching live weather data
-        and providing clothing suggestions.
+logger = setup_logger(__name__)
+logger.info("Initializing Weather Agent with Mem0 memory")
 
-    Args:
-        None    
+# -----------------------
+# Weather tools
+# -----------------------
+weather_tools = [get_weather]
+logger.debug(f"Registered weather tools: {[tool.name for tool in weather_tools]}")
 
-    Returns:
-        Agent:
-            A LangChain agent instance configured with:
-            - Gemini model
-            - Weather tool for real-time weather information
-            - System prompt defining agent behavior and output formatting
+# -----------------------
+# Memory helpers
+# -----------------------
+def retrieve_memories(query: str, user_id: str) -> str:
+    logger.info(f"Retrieving memories for user: {user_id}")
+    if len(query.strip().split()) < 3:
+        return ""
+    try:
+        memories = mem0.search(query=query, filters={"user_id": user_id}, limit=5)
+        memory_list = memories.get("results", [])
+        if not memory_list:
+            return ""
+        serialized = "\n".join(f"- {mem['memory']}" for mem in memory_list)
+        logger.info(f"Retrieved {len(memory_list)} memories")
+        return serialized
+    except Exception as e:
+        logger.error(f"Error retrieving memories: {str(e)}", exc_info=True)
+        return ""
 
-    Raises:
-        Exception:
-            Raised if the agent fails to initialize or the model configuration
-            is invalid.
-    """
-    # Initialize the Gemini language model
-    model = ChatGoogleGenerativeAI(
-        model=GEMINI_MODEL,
-        temperature=TEMPERATURE
+def save_interaction(user_id: str, user_input: str, assistant_response: str):
+    logger.info(f"Saving interaction to Mem0 for user: {user_id}")
+    try:
+        interaction = [
+            {"role": "user", "content": user_input},
+            {"role": "assistant", "content": assistant_response}
+        ]
+        result = mem0.add(interaction, user_id=user_id)
+        logger.info(f"Memory saved successfully: {len(result.get('results', []))} memories added")
+    except Exception as e:
+        logger.error(f"Error saving interaction to Mem0: {str(e)}", exc_info=True)
+
+# -----------------------
+# Memory-enhanced agent invocation
+# -----------------------
+def invoke_weather_agent_with_memory(messages: Dict, user_id: str = "default_user") -> Dict:
+    logger.info(f"Weather Agent invocation with memory for user: {user_id}")
+    last_message = messages["messages"][-1]
+    user_query = getattr(last_message, "content", str(last_message))
+    memory_context = retrieve_memories(user_query, user_id)
+
+    enhanced_system_prompt = SystemMessage(
+        content=f"""{WEATHER_AGENT_USER_PROMPT.content}
+
+## MEMORY CONTEXT
+{memory_context}
+
+Rules:
+- Use memory facts if available
+- If user's name is known, use it
+- Do NOT say you lack personal info if memory exists
+"""
     )
 
-    # Create the Weather Agent with the weather tool and system prompt
-    agent = create_agent(
-        model=model,
-        tools=[weather_tool],
-        system_prompt=WEATHER_AGENT_USER_PROMPT
-    )
+    enhanced_messages = {"messages": [enhanced_system_prompt] + messages["messages"][1:]}
 
-    return agent
+    try:
+        response = weather_agent.invoke(enhanced_messages)
+        assistant_response = response["messages"][-1].content
+        save_interaction(user_id, user_query, assistant_response)
+        logger.info("Weather Agent invocation completed successfully")
+        return response
+    except Exception as e:
+        logger.error(f"Failed to invoke Weather Agent with memory: {str(e)}", exc_info=True)
+        raise
+
+# -----------------------
+# Initialize Weather Agent
+# -----------------------
+try:
+    weather_agent = create_agent(model=model, tools=weather_tools, system_prompt=WEATHER_AGENT_USER_PROMPT)
+    logger.info("Weather Agent created successfully")
+except Exception as e:
+    logger.error(f"Failed to create Weather Agent: {str(e)}", exc_info=True)
+    raise

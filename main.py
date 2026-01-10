@@ -1,16 +1,15 @@
-"""
-main.py
-
-This script demonstrates the usage of two LangChain agents:
-1. Core Agent - Handles arithmetic, date computations, and text analysis
-2. Weather Agent - Fetches live weather data and provides clothing recommendations
-
-It runs example queries through each agent and prints the human-readable responses.
-"""
+# main.py
+# -------
+# Demonstrates usage of two LangChain agents:
+# 1. Core Agent - Handles arithmetic, date computations, and text analysis
+# 2. Weather Agent - Fetches live weather data and provides clothing recommendations
+#
+# Runs example queries through each agent and prints human-readable responses.
 
 from agents.core_agent import get_core_agent
 from agents.weather_agent import get_weather_agent
 from langchain_core.messages import HumanMessage
+
 
 def main():
     """
@@ -35,7 +34,6 @@ def main():
     weather_agent = get_weather_agent()
 
     # Core agent example queries
-
     core_queries = [
         "What will be the date 45 days from today?",
         "Analyze this paragraph: I am very happy with the excellent service.",
@@ -58,7 +56,6 @@ def main():
             print(response)
 
     # Weather agent example
-    
     weather_query = "What is today's weather in Chandigarh and suggest clothing accordingly?"
     print("\nUser:", weather_query)
     weather_response = weather_agent.invoke({
@@ -71,6 +68,7 @@ def main():
     else:
         # fallback if messages key is missing
         print(weather_response)
+
 
 if __name__ == "__main__":
     main()

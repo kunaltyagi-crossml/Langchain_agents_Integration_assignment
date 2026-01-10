@@ -1,37 +1,46 @@
-"""
-Date Utility Tool
-Calculates future dates.
-"""
+# date_utility_tool.py
+# --------------------
+# Date utility tool for LangChain agents.
+#
+# This module defines:
+#   - date_utility: Computes future (or past) dates by adding N days to today.
+#
+# Purpose:
+#   Provides safe computation of calendar dates, returns ISO-formatted strings,
+#   and handles errors gracefully.
 
 from langchain.tools import tool
 from datetime import datetime, timedelta
+from logger_config import setup_logger
 
+# -----------------------
+# Logger setup
+# -----------------------
+logger = setup_logger(__name__)
+
+# -----------------------
+# Date utility tool
+# -----------------------
 @tool
 def date_utility(days: int) -> str:
     """
-    Summary:
-        Computes the future date by adding a specified number of days
-        to today's date and returns it in YYYY-MM-DD format.
+    Computes the future date by adding a specified number of days to today.
 
     Args:
-        days (int):
-            The number of days to add to the current date. Can be positive
-            or zero. Negative values are handled but will compute a past date.
+        days (int): Number of days to add to today's date.
+                    Positive, zero, or negative values allowed.
 
     Returns:
-        str:
-            A string representing the future date in "YYYY-MM-DD" format.
-
-        In case of failure:
-            A formatted error message describing the issue.
-
-    Raises:
-        Exception:
-            Raised if the input is invalid or an unexpected error occurs
-            during date computation.
+        str: Future date in "YYYY-MM-DD" format, or error message if invalid.
     """
+    logger.info(f"[TOOL CALL] date_utility invoked with days: {days}")
     try:
+        if not isinstance(days, int):
+            raise TypeError("Days must be an integer.")
         future_date = datetime.today() + timedelta(days=days)
-        return future_date.strftime("%Y-%m-%d")
+        result = future_date.strftime("%Y-%m-%d")
+        logger.info(f"[TOOL SUCCESS] Calculated date: {result}")
+        return result
     except Exception as e:
+        logger.error(f"[TOOL ERROR] Date calculation failed: {str(e)}", exc_info=True)
         return f"Date Error: {e}"

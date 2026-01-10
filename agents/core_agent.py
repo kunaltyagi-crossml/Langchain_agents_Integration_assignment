@@ -1,66 +1,100 @@
 # core_agent.py
+# -------------
+# Core Agent with Mem0 memory integration
+#
+# This module provides:
+#   - Core agent for math, date, and text analysis
+#   - Memory-enhanced invocation using Mem0
+#   - Persistent conversation storage
 
-"""
-Core Agent Module
-
-This module initializes and returns the Core Agent for the project.
-The Core Agent can:
-- Perform arithmetic calculations
-- Analyze text for word count and sentiment
-- Compute future dates
-
-It leverages:
-- Gemini LLM via langchain_google_genai
-- Custom tools: math_tool, text_analyzer, date_utility
-- Structured system prompt from prompts.py
-"""
-
-from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import Dict, List
 from langchain.agents import create_agent
-from tools.math_tool import math_tool
-from tools.text_analyzer import text_analyzer
-from tools.date_utility import date_utility
-from prompts import CORE_AGENT_SYSTEM_PROMPT
-from cred import load_credentials
-from config import GEMINI_MODEL, TEMPERATURE
+from langchain_core.messages import SystemMessage
+from client import model, mem0
+from prompts import system_prompt, CORE_AGENT_SYSTEM_PROMPT
+from tools import math_calculator, date_utility_tool, analyze_text
+from logger_config import setup_logger
 
-# List of tools available for the Core Agent
-tools = [math_tool, text_analyzer, date_utility]
+logger = setup_logger(__name__)
+logger.info("Initializing Core Agent with Mem0 memory")
 
-def get_core_agent():
-    """
-    Summary:
-        Initializes and returns a production-ready Core Agent capable
-        of multi-tool reasoning with LangChain.
+# -----------------------
+# Core tools
+# -----------------------
+core_tools = [math_calculator, date_utility_tool, analyze_text]
+logger.debug(f"Registered core tools: {[tool.name for tool in core_tools]}")
 
-    Args:
-        None    
+# -----------------------
+# Memory helpers
+# -----------------------
+def retrieve_memories(query: str, user_id: str) -> str:
+    logger.info(f"Retrieving memories for user: {user_id}")
+    if len(query.strip().split()) < 3:
+        return ""
+    try:
+        memories = mem0.search(query=query, filters={"user_id": user_id}, limit=5)
+        memory_list = memories.get("results", [])
+        if not memory_list:
+            return ""
+        serialized = "\n".join(f"- {mem['memory']}" for mem in memory_list)
+        logger.info(f"Retrieved {len(memory_list)} memories")
+        return serialized
+    except Exception as e:
+        logger.error(f"Error retrieving memories: {str(e)}", exc_info=True)
+        return ""
 
-    Returns:
-        Agent:
-            A LangChain agent instance configured with:
-            - Gemini model
-            - Core tools (math, text analysis, date utility)
-            - System prompt defining agent behavior and reasoning guidelines
+def save_interaction(user_id: str, user_input: str, assistant_response: str):
+    logger.info(f"Saving interaction to Mem0 for user: {user_id}")
+    try:
+        interaction = [
+            {"role": "user", "content": user_input},
+            {"role": "assistant", "content": assistant_response}
+        ]
+        result = mem0.add(interaction, user_id=user_id)
+        logger.info(f"Memory saved successfully: {len(result.get('results', []))} memories added")
+    except Exception as e:
+        logger.error(f"Error saving interaction to Mem0: {str(e)}", exc_info=True)
 
-    Raises:
-        Exception:
-            Raised if credentials fail to load or agent initialization fails.
-    """
-    # Load API credentials from environment or config
-    load_credentials()
+# -----------------------
+# Memory-enhanced agent invocation
+# -----------------------
+def invoke_core_agent_with_memory(messages: Dict, user_id: str = "default_user") -> Dict:
+    logger.info(f"Core Agent invocation with memory for user: {user_id}")
+    last_message = messages["messages"][-1]
+    user_query = getattr(last_message, "content", str(last_message))
+    memory_context = retrieve_memories(user_query, user_id)
 
-    # Initialize the Gemini language model
-    model = ChatGoogleGenerativeAI(
-        model=GEMINI_MODEL,
-        temperature=TEMPERATURE
+    enhanced_system_prompt = SystemMessage(
+        content=f"""{CORE_AGENT_SYSTEM_PROMPT.content}
+
+## MEMORY CONTEXT
+{memory_context}
+
+Rules:
+- Use memory facts if available
+- If user's name is known, use it
+- Do NOT say you lack personal info if memory exists
+"""
     )
 
-    # Create and configure the Core Agent with tools and system prompt
-    agent = create_agent(
-        model=model,
-        tools=tools,
-        system_prompt=CORE_AGENT_SYSTEM_PROMPT
-    )
+    enhanced_messages = {"messages": [enhanced_system_prompt] + messages["messages"][1:]}
 
-    return agent
+    try:
+        response = core_agent.invoke(enhanced_messages)
+        assistant_response = response["messages"][-1].content
+        save_interaction(user_id, user_query, assistant_response)
+        logger.info("Core Agent invocation completed successfully")
+        return response
+    except Exception as e:
+        logger.error(f"Failed to invoke Core Agent with memory: {str(e)}", exc_info=True)
+        raise
+
+# -----------------------
+# Initialize Core Agent
+# -----------------------
+try:
+    core_agent = create_agent(model=model, tools=core_tools, system_prompt=CORE_AGENT_SYSTEM_PROMPT)
+    logger.info("Core Agent created successfully")
+except Exception as e:
+    logger.error(f"Failed to create Core Agent: {str(e)}", exc_info=True)
+    raise
