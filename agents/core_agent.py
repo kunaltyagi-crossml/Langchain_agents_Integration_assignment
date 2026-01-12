@@ -7,9 +7,9 @@
 #   - Memory-enhanced invocation using Mem0
 #   - Persistent conversation storage
 
-from typing import Dict, List
+from typing import Dict
 from langchain.agents import create_agent
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage
 from client import model, mem0
 from prompts import CORE_AGENT_SYSTEM_PROMPT
 from tools import date_utility, math_tool, text_analyzer

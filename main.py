@@ -6,10 +6,12 @@
 #
 # Runs example queries through each agent and prints human-readable responses.
 
+from langchain_core.messages import HumanMessage
+
 from agents.core_agent import invoke_core_agent_with_memory
 from agents.weather_agent import invoke_weather_agent_with_memory
-from langchain_core.messages import HumanMessage
 from prompts import user_query_1, user_query_2, user_query_3, user_query_4
+from cred import USER_ID
 
 
 def main():
@@ -30,9 +32,7 @@ def main():
             Any exceptions raised during agent initialization or query invocation
             will propagate and halt execution.
     """
-    # Define user ID for memory persistence
-    user_id = "default_user"
-
+    
     # Core agent example queries - using prompts from prompts.py
     core_queries = [
         user_query_1.content,  # "What will be the date 45 days from today?"
@@ -52,7 +52,7 @@ def main():
         # Invoke core agent with memory
         response = invoke_core_agent_with_memory(
             messages={"messages": [HumanMessage(content=query)]},
-            user_id=user_id
+            user_id=USER_ID
         )
 
         print("\n--- Core Agent Response ---")
@@ -75,7 +75,7 @@ def main():
     
     weather_response = invoke_weather_agent_with_memory(
         messages={"messages": [HumanMessage(content=weather_query)]},
-        user_id=user_id
+        user_id=USER_ID
     )
 
     print("\n--- Weather Agent Response ---")

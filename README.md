@@ -1,12 +1,12 @@
 # Custom LangChain Multi-Tool Agent Project
 
-This project demonstrates how to build **tool-enabled LLM agents** using **LangChain** and **Google Gemini API**, with support for **custom tools**, **multi-tool reasoning**, and **external API integration**.
+This project demonstrates how to build **tool-enabled LLM agents** using **LangChain** and **Google Gemini API**, with support for **custom tools**, **multi-tool reasoning**, **external API integration**, and **persistent memory using Mem0**.
 
 ---
 
 ## 🚀 Project Overview
 
-The project is divided into **4 parts**:
+The project is divided into **5 parts**:
 
 1. #### Part 1 – Custom Tools**
    - **Math Tool:** Evaluate arithmetic expressions.
@@ -30,7 +30,13 @@ The project is divided into **4 parts**:
    - **Weather Tool:** Fetches live weather using OpenWeatherMap API.
    - Provides human-friendly clothing recommendations.
    - Example query:  
-     `"What is today’s weather in Chandigarh and suggest clothing accordingly?"`
+     `"What is today's weather in Chandigarh and suggest clothing accordingly?"`
+
+5. #### Part 5 – Mem0 Memory Integration**
+   - **Persistent Memory:** Stores and retrieves conversation history using Mem0.
+   - **Context-Aware Responses:** Agents remember user preferences and past interactions.
+   - **User-Specific Memory:** Each user has isolated memory with `user_id` filtering.
+   - Example: If user shares their name, agents will use it in future conversations.
 
 ---
 ## ⚙️ Setup Instructions
@@ -54,6 +60,7 @@ Create a file named .env in the root directory of this project and add your API 
 
       WEATHER_API_KEY=your_weather_api_key_here
       GEMINI_API_KEY=your_gemini_api_key_here
+      MEM0_API_KEY=your_mem0_api_key_here
 
 ## Usage
 #### 1. Core Agent
@@ -62,6 +69,7 @@ The Core Agent supports:
 - Date computations
 - Text analysis (word count, sentiment)
 - Multi-step tool reasoning
+- **Memory-enhanced conversations**
 
 Run the application:
 
@@ -72,12 +80,14 @@ Example Queries:
 - What is (234 * 12) + 98?
 - What will be the date 45 days from today?
 - Analyze this paragraph: I am very happy with the excellent service.
+- My name is John (agent will remember this for future conversations)
 
 #### 2. Weather Agent
 The Weather Agent:
 
 - Fetches live weather data
 - Suggests clothing based on temperature and conditions
+- **Remembers user's location preferences**
 
 Example query:
 
@@ -90,8 +100,17 @@ The Weather Agent is invoked automatically via main.py.
 - Agents receive user input as HumanMessage
 - System behavior is governed by detailed prompts in prompts.py
 - Tools are selected dynamically based on query type
+- **Mem0 retrieves relevant memories** before processing each query
 - Tool outputs are treated as authoritative
+- **Conversations are saved to Mem0** for future context
 - Final responses are human-friendly and actionable
+
+#### Memory System Features
+
+- **Automatic Memory Retrieval:** Relevant past conversations are fetched based on query similarity
+- **User-Specific Storage:** Each user's memory is isolated using `user_id`
+- **Persistent Context:** Agent remembers user preferences, names, and past interactions
+- **Smart Memory Search:** Only queries with 3+ words trigger memory lookup (optimization)
 
 #### Learning Outcomes
 
@@ -100,15 +119,13 @@ The Weather Agent is invoked automatically via main.py.
 - Design strict system prompts with DOs and DON'Ts
 - Avoid hallucinations using tool enforcement
 - Handle Pydantic validation and message schemas
+- **Implement persistent memory with Mem0**
+- **Build context-aware conversational agents**
 - Build production-ready LLM agent workflows
 
 #### Future Enhancements 
 
-- Persistent memory integration
 - Additional external APIs (currency, news)
 - Web or Streamlit-based UI
 - Enhanced logging and monitoring
-
-
-
-
+- Multi-user session management

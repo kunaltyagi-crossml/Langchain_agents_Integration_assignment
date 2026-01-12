@@ -9,7 +9,7 @@
 
 from typing import Dict
 from langchain.agents import create_agent
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage
 from client import model, mem0
 from prompts import WEATHER_AGENT_USER_PROMPT
 from tools.weather_tool import weather_tool
