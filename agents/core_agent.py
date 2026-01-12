@@ -11,8 +11,8 @@ from typing import Dict, List
 from langchain.agents import create_agent
 from langchain_core.messages import SystemMessage
 from client import model, mem0
-from prompts import system_prompt, CORE_AGENT_SYSTEM_PROMPT
-from tools import math_calculator, date_utility_tool, analyze_text
+from prompts import CORE_AGENT_SYSTEM_PROMPT
+from tools import date_utility,math_tool,text_analyzer
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -21,7 +21,7 @@ logger.info("Initializing Core Agent with Mem0 memory")
 # -----------------------
 # Core tools
 # -----------------------
-core_tools = [math_calculator, date_utility_tool, analyze_text]
+core_tools = [date_utility.date_utility,math_tool.math_calculator,text_analyzer.text_analyzer]
 logger.debug(f"Registered core tools: {[tool.name for tool in core_tools]}")
 
 # -----------------------

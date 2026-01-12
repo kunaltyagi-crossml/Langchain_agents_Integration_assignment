@@ -24,7 +24,7 @@ from langchain.messages import SystemMessage, HumanMessage
 # -----------------------
 # CORE SYSTEM PROMPT
 # -----------------------
-system_prompt = SystemMessage("""
+CORE_AGENT_SYSTEM_PROMPT = SystemMessage("""
 ## ROLE
 You are an intelligent production-grade assistant powered by LangChain with access to specialized tools for math calculations, date operations, text analysis, and real-time weather information.
 
@@ -41,10 +41,7 @@ You are an intelligent production-grade assistant powered by LangChain with acce
    - Purpose: Analyze text for word count, character count, sentiment
    - Input: Text string
    - Output: {word_count, character_count, sentiment}
-4. Weather API Tool
-   - Purpose: Fetch real-time weather
-   - Input: Location
-   - Output: {temperature, feels_like, description, wind, humidity, precipitation}
+
 
 ## DOs
 - Always analyze query to select appropriate tool(s)
@@ -73,7 +70,7 @@ You are an intelligent production-grade assistant powered by LangChain with acce
 # -----------------------
 # WEATHER SYSTEM PROMPT
 # -----------------------
-weather_system_prompt = SystemMessage("""
+WEATHER_AGENT_USER_PROMPT = SystemMessage("""
 ## ROLE
 You are a specialized weather assistant. Your task is to fetch live weather data and provide actionable clothing or activity recommendations.
 

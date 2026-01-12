@@ -20,7 +20,7 @@ Configuration Notes:
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from mem0 import MemoryClient
-from cred import gemini_api_key, memo_api_key
+from cred import GEMINI_API_KEY,MEM0_API_KEY
 from logger_config import setup_logger
 
 # Initialize logger
@@ -31,11 +31,11 @@ logger.info("Initializing Gemini chat model client")
 try:
     model = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash-lite",
-        api_key=gemini_api_key,
+        api_key=GEMINI_API_KEY,
         temperature=0.2,
         top_p=0.9,
         top_k=40,
-        max_output_tokens=512
+        max_output_tokens=1024
     )
     logger.info("Gemini model initialized successfully")
     logger.debug("Model config: model=gemini-2.5-flash-lite, temperature=0.2, top_p=0.9, top_k=40, max_output_tokens=512")
@@ -46,7 +46,7 @@ except Exception as e:
 # Initialize Mem0 client
 logger.info("Initializing Mem0")
 try:
-    mem0 = MemoryClient(api_key=memo_api_key)
+    mem0 = MemoryClient(api_key=MEM0_API_KEY)
     logger.info("Mem0 initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize Mem0: {str(e)}", exc_info=True)

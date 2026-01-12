@@ -6,8 +6,8 @@
 #
 # Runs example queries through each agent and prints human-readable responses.
 
-from agents.core_agent import get_core_agent
-from agents.weather_agent import get_weather_agent
+from agents.core_agent import invoke_core_agent_with_memory
+from agents.weather_agent import invoke_weather_agent_with_memory
 from langchain_core.messages import HumanMessage
 
 
@@ -29,9 +29,8 @@ def main():
             Any exceptions raised during agent initialization or query invocation
             will propagate and halt execution.
     """
-    # Initialize agents
-    core_agent = get_core_agent()
-    weather_agent = get_weather_agent()
+    # Define user ID for memory persistence
+    user_id = "default_user"
 
     # Core agent example queries
     core_queries = [
@@ -42,10 +41,11 @@ def main():
 
     for query in core_queries:
         print("\nUser:", query)
-        # Wrap as HumanMessage
-        response = core_agent.invoke({
-            "messages": [HumanMessage(content=query)]
-        })
+        # Invoke core agent with memory
+        response = invoke_core_agent_with_memory(
+            messages={"messages": [HumanMessage(content=query)]},
+            user_id=user_id
+        )
 
         print("--- Core Agent Response ---")
         # Access the last message content
@@ -58,9 +58,10 @@ def main():
     # Weather agent example
     weather_query = "What is today's weather in Chandigarh and suggest clothing accordingly?"
     print("\nUser:", weather_query)
-    weather_response = weather_agent.invoke({
-        "messages": [HumanMessage(content=weather_query)]
-    })
+    weather_response = invoke_weather_agent_with_memory(
+        messages={"messages": [HumanMessage(content=weather_query)]},
+        user_id=user_id
+    )
 
     print("\n--- Weather Agent Response ---")
     if "messages" in weather_response:

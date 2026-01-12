@@ -11,17 +11,18 @@ from typing import Dict
 from langchain.agents import create_agent
 from langchain_core.messages import SystemMessage
 from client import model, mem0
-from prompts import system_prompt, WEATHER_AGENT_USER_PROMPT
-from tools import get_weather
+from prompts import WEATHER_AGENT_USER_PROMPT
+from tools.weather_tool import weather_tool
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
 logger.info("Initializing Weather Agent with Mem0 memory")
 
+tool=[weather_tool]
 # -----------------------
 # Weather tools
 # -----------------------
-weather_tools = [get_weather]
+weather_tools = [weather_tool]
 logger.debug(f"Registered weather tools: {[tool.name for tool in weather_tools]}")
 
 # -----------------------
@@ -93,7 +94,7 @@ Rules:
 # Initialize Weather Agent
 # -----------------------
 try:
-    weather_agent = create_agent(model=model, tools=weather_tools, system_prompt=WEATHER_AGENT_USER_PROMPT)
+    weather_agent = create_agent(model=model, tools=tool, system_prompt=WEATHER_AGENT_USER_PROMPT)
     logger.info("Weather Agent created successfully")
 except Exception as e:
     logger.error(f"Failed to create Weather Agent: {str(e)}", exc_info=True)
