@@ -3,11 +3,12 @@
 # Centralized prompt configuration module for the LangChain agent application.
 #
 # This module defines:
-#   - system_prompt: Core system message for multi-tool reasoning
-#   - weather_system_prompt: Specialized system message for weather queries
-#   - user_query_1: Test query for math calculations
-#   - user_query_2: Test query for multi-tool usage (math + date)
-#   - user_query_3: Test query for weather API and recommendations
+#   - CORE_AGENT_SYSTEM_PROMPT: Core system message for multi-tool reasoning
+#   - WEATHER_AGENT_USER_PROMPT: Specialized system message for weather queries
+#   - user_query_1: Test query for date calculations
+#   - user_query_2: Test query for text analysis
+#   - user_query_3: Test query for math calculations
+#   - user_query_4: Test query for weather API and recommendations
 #
 # Purpose:
 #   Keeping all prompts in a single module ensures consistency, maintainability,
@@ -19,7 +20,7 @@
 #   - Responses must be human-friendly and concise
 #   - Weather-based recommendations follow clear temperature thresholds
 
-from langchain.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 
 # -----------------------
 # CORE SYSTEM PROMPT
@@ -62,7 +63,7 @@ You are an intelligent production-grade assistant powered by LangChain with acce
 - Retry only with corrected user input
 
 ## OUTPUT FORMAT
-1. Brief reasoning: “This query requires Math Tool” etc.
+1. Brief reasoning: "This query requires Math Tool" etc.
 2. Log intermediate outputs if multiple steps involved
 3. Combine into final concise answer with explanations
 """)
@@ -98,7 +99,7 @@ You are a specialized weather assistant. Your task is to fetch live weather data
 - If weather tool fails, explain clearly and ask for location confirmation or retry
 
 ## OUTPUT FORMAT
-1. Reasoning step: “Fetching weather for [location]”
+1. Reasoning step: "Fetching weather for [location]"
 2. Log tool output briefly: temperature, condition, etc.
 3. Provide final recommendation: clothing, umbrella, or other practical advice
 """)
@@ -106,12 +107,16 @@ You are a specialized weather assistant. Your task is to fetch live weather data
 # -----------------------
 # USER QUERIES (TEST)
 # -----------------------
-user_query_1 = HumanMessage("What is (234 * 12) + 98?")
+# Core Agent Queries
+user_query_1 = HumanMessage(content="What will be the date 45 days from today?")
 
 user_query_2 = HumanMessage(
-    "Calculate the total cost if I buy 3 items priced at 499 each and tell me the delivery date if shipping takes 7 days."
+    content="Analyze this paragraph: I am very happy with the excellent service."
 )
 
-user_query_3 = HumanMessage(
-    "What is today's weather in Chandigarh and suggest clothing accordingly?"
+user_query_3 = HumanMessage("What is (234 * 12) + 98?")
+
+# Weather Agent Query
+user_query_4 = HumanMessage(
+    content="What is today's weather in Chandigarh and suggest clothing accordingly?"
 )

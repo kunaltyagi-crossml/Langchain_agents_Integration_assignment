@@ -9,10 +9,10 @@
 
 from typing import Dict, List
 from langchain.agents import create_agent
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from client import model, mem0
 from prompts import CORE_AGENT_SYSTEM_PROMPT
-from tools import date_utility,math_tool,text_analyzer
+from tools import date_utility, math_tool, text_analyzer
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -21,7 +21,7 @@ logger.info("Initializing Core Agent with Mem0 memory")
 # -----------------------
 # Core tools
 # -----------------------
-core_tools = [date_utility.date_utility,math_tool.math_calculator,text_analyzer.text_analyzer]
+core_tools = [date_utility.date_utility, math_tool.math_calculator, text_analyzer.text_analyzer]
 logger.debug(f"Registered core tools: {[tool.name for tool in core_tools]}")
 
 # -----------------------
@@ -64,8 +64,8 @@ def invoke_core_agent_with_memory(messages: Dict, user_id: str = "default_user")
     user_query = getattr(last_message, "content", str(last_message))
     memory_context = retrieve_memories(user_query, user_id)
 
-    enhanced_system_prompt = SystemMessage(
-        content=f"""{CORE_AGENT_SYSTEM_PROMPT.content}
+    # Build enhanced system prompt content
+    enhanced_system_content = f"""{CORE_AGENT_SYSTEM_PROMPT.content}
 
 ## MEMORY CONTEXT
 {memory_context}
@@ -75,9 +75,12 @@ Rules:
 - If user's name is known, use it
 - Do NOT say you lack personal info if memory exists
 """
-    )
 
-    enhanced_messages = {"messages": [enhanced_system_prompt] + messages["messages"][1:]}
+    # Create new SystemMessage with enhanced content
+    enhanced_system_prompt = SystemMessage(content=enhanced_system_content)
+    
+    # Build the enhanced messages properly
+    enhanced_messages = {"messages": [enhanced_system_prompt] + messages["messages"]}
 
     try:
         response = core_agent.invoke(enhanced_messages)

@@ -9,7 +9,7 @@
 
 from typing import Dict
 from langchain.agents import create_agent
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from client import model, mem0
 from prompts import WEATHER_AGENT_USER_PROMPT
 from tools.weather_tool import weather_tool
@@ -18,7 +18,6 @@ from logger_config import setup_logger
 logger = setup_logger(__name__)
 logger.info("Initializing Weather Agent with Mem0 memory")
 
-tool=[weather_tool]
 # -----------------------
 # Weather tools
 # -----------------------
@@ -65,8 +64,8 @@ def invoke_weather_agent_with_memory(messages: Dict, user_id: str = "default_use
     user_query = getattr(last_message, "content", str(last_message))
     memory_context = retrieve_memories(user_query, user_id)
 
-    enhanced_system_prompt = SystemMessage(
-        content=f"""{WEATHER_AGENT_USER_PROMPT.content}
+    # Build enhanced system prompt content
+    enhanced_system_content = f"""{WEATHER_AGENT_USER_PROMPT.content}
 
 ## MEMORY CONTEXT
 {memory_context}
@@ -76,9 +75,12 @@ Rules:
 - If user's name is known, use it
 - Do NOT say you lack personal info if memory exists
 """
-    )
 
-    enhanced_messages = {"messages": [enhanced_system_prompt] + messages["messages"][1:]}
+    # Create new SystemMessage with enhanced content
+    enhanced_system_prompt = SystemMessage(content=enhanced_system_content)
+    
+    # Build the enhanced messages properly
+    enhanced_messages = {"messages": [enhanced_system_prompt] + messages["messages"]}
 
     try:
         response = weather_agent.invoke(enhanced_messages)
@@ -94,7 +96,7 @@ Rules:
 # Initialize Weather Agent
 # -----------------------
 try:
-    weather_agent = create_agent(model=model, tools=tool, system_prompt=WEATHER_AGENT_USER_PROMPT)
+    weather_agent = create_agent(model=model, tools=weather_tools, system_prompt=WEATHER_AGENT_USER_PROMPT)
     logger.info("Weather Agent created successfully")
 except Exception as e:
     logger.error(f"Failed to create Weather Agent: {str(e)}", exc_info=True)
